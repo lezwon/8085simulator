@@ -1,5 +1,0 @@
-{
-  "name": "8085 Microprocessor Simulator Kit",
-  "description": "A React-based simulator for the Intel 8085 microprocessor, with a UI styled after vintage trainer kits. Supports direct hex code input, memory examination/modification, and step-by-step or continuous execution for a subset of 8085 instructions.",
-  "requestFramePermissions": []
-}
