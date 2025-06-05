@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { CPU8085 } from './services/8085';
 import { CPUState, InteractionMode, Registers, Flags } from './types';
@@ -19,6 +18,9 @@ const App: React.FC = () => {
   const [memoryViewStartAddress, setMemoryViewStartAddress] = useState<number>(0x0000);
   const [isRunning, setIsRunning] = useState<boolean>(false);
   const runIntervalRef = useRef<number | null>(null);
+  const [showShortcuts, setShowShortcuts] = useState(false);
+  const [showInstructions, setShowInstructions] = useState(false);
+  const [activeTab, setActiveTab] = useState('instructions');
 
   const refreshUI = useCallback(() => {
     const newState = cpu.getState();
@@ -174,10 +176,97 @@ const App: React.FC = () => {
     }
   }, [currentExamAddress, memoryViewStartAddress]);
 
+  // Add keyboard event handler
+  useEffect(() => {
+    const handleKeyboardEvent = (event: KeyboardEvent) => {
+      if (isRunning) return; // No keyboard input while running
+
+      const key = event.key.toUpperCase();
+      
+      // Map hex keys (0-9, A-F)
+      if (/^[0-9A-F]$/.test(key)) {
+        handleKeyPress(key);
+      }
+      // Map control keys
+      else if (key === 'M') { // M for eXaM
+        handleKeyPress('EXAM_MEM');
+      }
+      else if (key === 'W') { // W for Store (Write)
+        handleKeyPress('STORE');
+      }
+      else if (key === 'N') { // N for NEXT
+        handleKeyPress('NEXT_ADDR');
+      }
+      else if (key === 'V') { // V for preVious
+        handleKeyPress('PREV_ADDR');
+      }
+      else if (key === 'G') { // G for GO
+        handleKeyPress('GO');
+      }
+      else if (key === 'R') { // R for RESET
+        handleReset();
+      }
+      else if (key === 'X') { // X for EXEC STEP
+        handleExecuteStep();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyboardEvent);
+    return () => {
+      window.removeEventListener('keydown', handleKeyboardEvent);
+    };
+  }, [isRunning, handleKeyPress, handleReset, handleExecuteStep]);
+
+  // Instruction set data (partial, for brevity in example)
+  const instructionSet = [
+    { hex: '00', mnemonic: 'NOP' }, { hex: '50', mnemonic: 'MOV D,B' }, { hex: '9B', mnemonic: 'SBB E' }, { hex: 'E9', mnemonic: 'PCHL' },
+    { hex: '01', mnemonic: 'LXI B' }, { hex: '51', mnemonic: 'MOV D,C' }, { hex: '9C', mnemonic: 'SBB H' }, { hex: 'EA', mnemonic: 'JPE' },
+    { hex: '02', mnemonic: 'STAX B' }, { hex: '52', mnemonic: 'MOV D,D' }, { hex: '9D', mnemonic: 'SBB L' }, { hex: 'EB', mnemonic: 'XCHG' },
+    { hex: '03', mnemonic: 'INX B' }, { hex: '53', mnemonic: 'MOV D,E' }, { hex: '9E', mnemonic: 'SBB M' }, { hex: 'EC', mnemonic: 'CPE' },
+    { hex: '04', mnemonic: 'INR B' }, { hex: '54', mnemonic: 'MOV D,H' }, { hex: '9F', mnemonic: 'SBB A' }, { hex: 'EE', mnemonic: 'XRI' },
+    { hex: '05', mnemonic: 'DCR B' }, { hex: '55', mnemonic: 'MOV D,L' }, { hex: 'A0', mnemonic: 'ANA B' }, { hex: 'EF', mnemonic: 'RST 5' },
+    { hex: '06', mnemonic: 'MVI B' }, { hex: '56', mnemonic: 'MOV D,M' }, { hex: 'A1', mnemonic: 'ANA C' }, { hex: 'F0', mnemonic: 'RP' },
+    { hex: '07', mnemonic: 'RLC' }, { hex: '57', mnemonic: 'MOV D,A' }, { hex: 'A2', mnemonic: 'ANA D' }, { hex: 'F1', mnemonic: 'POP PSW' },
+    { hex: '09', mnemonic: 'DAD B' }, { hex: '58', mnemonic: 'MOV E,B' }, { hex: 'A3', mnemonic: 'ANA E' }, { hex: 'F2', mnemonic: 'JP' },
+    { hex: '0A', mnemonic: 'LDAX B' }, { hex: '59', mnemonic: 'MOV E,C' }, { hex: 'A4', mnemonic: 'ANA H' }, { hex: 'F3', mnemonic: 'DI' },
+    { hex: '0B', mnemonic: 'DCX B' }, { hex: '5A', mnemonic: 'MOV E,D' }, { hex: 'A5', mnemonic: 'ANA L' }, { hex: 'F4', mnemonic: 'CP' },
+    { hex: '0C', mnemonic: 'INR C' }, { hex: '5B', mnemonic: 'MOV E,E' }, { hex: 'A6', mnemonic: 'ANA M' }, { hex: 'F5', mnemonic: 'PUSH PSW' },
+    { hex: '0D', mnemonic: 'DCR C' }, { hex: '5C', mnemonic: 'MOV E,H' }, { hex: 'A7', mnemonic: 'ANA A' }, { hex: 'F6', mnemonic: 'ORI' },
+    { hex: '0E', mnemonic: 'MVI C' }, { hex: '5D', mnemonic: 'MOV E,L' }, { hex: 'A8', mnemonic: 'XRA B' }, { hex: 'F7', mnemonic: 'RST 6' },
+    { hex: '0F', mnemonic: 'RRC' }, { hex: '5E', mnemonic: 'MOV E,M' }, { hex: 'A9', mnemonic: 'XRA C' }, { hex: 'F8', mnemonic: 'RM' },
+    { hex: '11', mnemonic: 'LXI D' }, { hex: '5F', mnemonic: 'MOV E,A' }, { hex: 'AA', mnemonic: 'XRA D' }, { hex: 'F9', mnemonic: 'SPHL' },
+    { hex: '12', mnemonic: 'STAX D' }, { hex: '60', mnemonic: 'MOV H,B' }, { hex: 'AB', mnemonic: 'XRA E' }, { hex: 'FA', mnemonic: 'JM' },
+    { hex: '13', mnemonic: 'INX D' }, { hex: '61', mnemonic: 'MOV H,C' }, { hex: 'AC', mnemonic: 'XRA H' }, { hex: 'FB', mnemonic: 'EI' },
+    { hex: '14', mnemonic: 'INR D' }, { hex: '62', mnemonic: 'MOV H,D' }, { hex: 'AD', mnemonic: 'XRA L' }, { hex: 'FC', mnemonic: 'CM' },
+    { hex: '15', mnemonic: 'DCR D' }, { hex: '63', mnemonic: 'MOV H,E' }, { hex: 'AE', mnemonic: 'XRA M' }, { hex: 'FE', mnemonic: 'CPI' },
+    { hex: '16', mnemonic: 'MVI D' }, { hex: '64', mnemonic: 'MOV H,H' }, { hex: 'AF', mnemonic: 'XRA A' }, { hex: 'FF', mnemonic: 'RST 7' },
+    { hex: '76', mnemonic: 'HLT' }, { hex: 'C3', mnemonic: 'JMP'}, { hex: 'CD', mnemonic: 'CALL'}, {hex: 'C9', mnemonic: 'RET'}
+  ];
+
   return (
     <div className="min-h-screen bg-[#2D2D2D] text-gray-100 p-4 flex flex-col items-center font-sans">
-      <header className="mb-6 text-center">
-        <h1 className="text-4xl font-bold text-orange-400 font-['Orbitron',sans-serif]">8085 Microprocessor Simulator</h1>
+      <header className="mb-6 text-center relative w-full max-w-4xl flex justify-center items-center">
+        <div className="absolute left-0 top-1/2 -translate-y-1/2">
+          <button
+            onClick={() => setShowShortcuts(true)}
+            className="bg-gray-700 hover:bg-gray-600 text-orange-400 px-3 py-1 rounded-lg shadow-md transition-colors duration-200 flex items-center gap-2"
+            title="Keyboard Shortcuts"
+          >
+            <span className="text-sm">⌨️</span>
+            <span className="text-sm hidden sm:inline">Shortcuts</span>
+          </button>
+        </div>
+        <h1 className="text-4xl font-bold text-orange-400 font-['Orbitron',sans-serif] mx-auto">8085 Microprocessor Simulator</h1>
+        <div className="absolute right-0 top-1/2 -translate-y-1/2">
+          <button
+            onClick={() => setShowInstructions(true)}
+            className="bg-gray-700 hover:bg-gray-600 text-orange-400 px-3 py-1 rounded-lg shadow-md transition-colors duration-200 flex items-center gap-2"
+            title="8085 Instruction Set"
+          >
+            <span className="text-sm">📖</span>
+            <span className="text-sm hidden sm:inline">Instructions</span>
+          </button>
+        </div>
       </header>
 
       <div className="w-full max-w-4xl grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -211,12 +300,200 @@ const App: React.FC = () => {
         </div>
       </div>
       
-      {/* Simple status message area */}
+      {/* Status message area */}
       <div className="mt-4 p-2 bg-gray-700 rounded w-full max-w-4xl text-center text-sm font-digital">
         STATUS: {isRunning ? `RUNNING FROM ${toHexString(cpuState.registers.PC, 4)}` : cpuState.halted ? 'HALTED' : InteractionMode[mode]} | 
         ADDR_BUF: {inputBuffer && (mode === InteractionMode.EXAM_MEM_ADDR_INPUT || mode === InteractionMode.GO_ADDR_INPUT) ? inputBuffer : '--'} | 
         DATA_BUF: {inputBuffer && mode === InteractionMode.EXAM_MEM_DATA_VIEW ? inputBuffer : '--'}
       </div>
+
+      {/* Keyboard Shortcuts Modal */}
+      {showShortcuts && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-gray-800 p-6 rounded-lg shadow-xl max-w-md w-full mx-4 relative">
+            <button
+              onClick={() => setShowShortcuts(false)}
+              className="absolute top-4 right-4 text-gray-400 hover:text-white"
+            >
+              ✕
+            </button>
+            <h2 className="text-xl font-bold mb-4 text-orange-400">Keyboard Shortcuts</h2>
+            <div className="space-y-3 text-sm">
+              <div className="flex justify-between items-center">
+                <span className="text-gray-300">Hex Values:</span>
+                <span className="font-digital bg-gray-700 px-2 py-1 rounded">0-9, A-F</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-gray-300">Examine Memory:</span>
+                <span className="font-digital bg-gray-700 px-2 py-1 rounded">M</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-gray-300">Store Data:</span>
+                <span className="font-digital bg-gray-700 px-2 py-1 rounded">W</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-gray-300">Next Address:</span>
+                <span className="font-digital bg-gray-700 px-2 py-1 rounded">N</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-gray-300">Previous Address:</span>
+                <span className="font-digital bg-gray-700 px-2 py-1 rounded">V</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-gray-300">Execute (GO):</span>
+                <span className="font-digital bg-gray-700 px-2 py-1 rounded">G</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-gray-300">Reset:</span>
+                <span className="font-digital bg-gray-700 px-2 py-1 rounded">R</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-gray-300">Execute Step:</span>
+                <span className="font-digital bg-gray-700 px-2 py-1 rounded">X</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Instruction Set Modal */}
+      {showInstructions && (
+        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
+          <div className="bg-gray-800 p-6 rounded-lg shadow-xl max-w-4xl w-full relative font-sans">
+            <button
+              onClick={() => setShowInstructions(false)}
+              className="absolute top-4 right-4 text-gray-400 hover:text-white text-2xl"
+            >
+              ✕
+            </button>
+            
+            {/* Tabs */}
+            <div className="flex space-x-4 mb-6 border-b border-gray-700">
+              <button
+                onClick={() => setActiveTab('instructions')}
+                className={`pb-2 px-4 ${activeTab === 'instructions' ? 'text-orange-400 border-b-2 border-orange-400' : 'text-gray-400'}`}
+              >
+                Instruction Set
+              </button>
+              <button
+                onClick={() => setActiveTab('guide')}
+                className={`pb-2 px-4 ${activeTab === 'guide' ? 'text-orange-400 border-b-2 border-orange-400' : 'text-gray-400'}`}
+              >
+                Getting Started
+              </button>
+            </div>
+
+            {/* Instruction Set Tab */}
+            {activeTab === 'instructions' && (
+              <>
+                <h2 className="text-2xl font-bold mb-6 text-orange-400 text-center">8085 Instruction Set</h2>
+                <div className="max-h-[60vh] overflow-y-auto pr-2">
+                  <table className="w-full text-sm table-fixed">
+                    <thead className="sticky top-0 bg-gray-800">
+                      <tr className="border-b border-gray-600">
+                        <th className="p-2 text-left text-gray-300 font-semibold w-1/4">Hex</th>
+                        <th className="p-2 text-left text-gray-300 font-semibold w-1/4">Mnemonic</th>
+                        <th className="p-2 text-left text-gray-300 font-semibold w-1/4">Hex</th>
+                        <th className="p-2 text-left text-gray-300 font-semibold w-1/4">Mnemonic</th>
+                      </tr>
+                    </thead>
+                    <tbody className="font-digital">
+                      {instructionSet.reduce((rows, key, index) => (index % 2 === 0 ? rows.push([key]) : rows[rows.length-1].push(key)) && rows, [] as Array<Array<{hex: string, mnemonic: string}>>)
+                        .reduce((acc, pair, index) => {
+                          if (index % 2 === 0) {
+                            acc.push([pair[0], pair[1]]);
+                          } else {
+                            acc[acc.length - 1].push(pair[0], pair[1]);
+                          }
+                          return acc;
+                        }, [] as Array<Array<{hex: string, mnemonic: string} | undefined>>)
+                        .map((rowItems, rowIndex) => (
+                        <tr key={rowIndex} className="border-b border-gray-700 hover:bg-gray-700">
+                          <td className="p-2 text-green-400">{rowItems[0]?.hex}</td>
+                          <td className="p-2 text-sky-300">{rowItems[0]?.mnemonic}</td>
+                          <td className="p-2 text-green-400">{rowItems[1]?.hex}</td>
+                          <td className="p-2 text-sky-300">{rowItems[1]?.mnemonic}</td>
+                          <td className="p-2 text-green-400">{rowItems[2]?.hex}</td>
+                          <td className="p-2 text-sky-300">{rowItems[2]?.mnemonic}</td>
+                          <td className="p-2 text-green-400">{rowItems[3]?.hex}</td>
+                          <td className="p-2 text-sky-300">{rowItems[3]?.mnemonic}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </>
+            )}
+
+            {/* Getting Started Tab */}
+            {activeTab === 'guide' && (
+              <div className="max-h-[70vh] overflow-y-auto pr-2">
+                <h2 className="text-2xl font-bold mb-6 text-orange-400 text-center">Getting Started Guide</h2>
+                
+                <div className="space-y-6 text-gray-300">
+                  <section>
+                    <h3 className="text-xl font-semibold text-orange-400 mb-2">Understanding the Interface</h3>
+                    <p className="mb-4">The simulator interface consists of several key components:</p>
+                    <ul className="list-disc pl-6 space-y-2">
+                      <li><span className="text-orange-400">Display Panel:</span> Shows the current address and data in hex format, along with status flags (S, Z, AC, P, CY)</li>
+                      <li><span className="text-orange-400">Keypad:</span> Used for entering hex values (0-F) and control commands</li>
+                      <li><span className="text-orange-400">Control Panel:</span> Contains RESET and EXEC STEP buttons</li>
+                      <li><span className="text-orange-400">Register View:</span> Shows the current state of all registers</li>
+                      <li><span className="text-orange-400">Memory View:</span> Displays the contents of memory locations</li>
+                    </ul>
+                  </section>
+
+                  <section>
+                    <h3 className="text-xl font-semibold text-orange-400 mb-2">Basic Operations</h3>
+                    <ul className="list-disc pl-6 space-y-2">
+                      <li><span className="text-orange-400">Examine Memory (M):</span> Enter an address to view its contents</li>
+                      <li><span className="text-orange-400">Store Data (W):</span> Write data to the current memory location</li>
+                      <li><span className="text-orange-400">Next/Previous (N/V):</span> Navigate through memory locations</li>
+                      <li><span className="text-orange-400">Execute (G):</span> Run the program from a specified address</li>
+                      <li><span className="text-orange-400">Reset (R):</span> Reset the processor state</li>
+                    </ul>
+                  </section>
+
+                  <section>
+                    <h3 className="text-xl font-semibold text-orange-400 mb-2">Sample Program: Adding Two Numbers</h3>
+                    <p className="mb-2">Let's write a simple program to add two numbers (25H + 35H):</p>
+                    <div className="bg-gray-900 p-4 rounded font-digital text-sm space-y-2">
+                      <p>MVI A, 25H    ; Load 25H into accumulator</p>
+                      <p>MVI B, 35H    ; Load 35H into register B</p>
+                      <p>ADD B        ; Add B to A</p>
+                      <p>HLT          ; Halt the program</p>
+                    </div>
+                    <p className="mt-4">To enter this program:</p>
+                    <ol className="list-decimal pl-6 space-y-2">
+                      <li>Press M and enter 2000H (program start address)</li>
+                      <li>Enter 3E (MVI A opcode)</li>
+                      <li>Press W to store</li>
+                      <li>Press N to go to next address</li>
+                      <li>Enter 25 (data)</li>
+                      <li>Press W to store</li>
+                      <li>Continue with remaining instructions...</li>
+                    </ol>
+                  </section>
+
+                  <section>
+                    <h3 className="text-xl font-semibold text-orange-400 mb-2">Video Tutorial</h3>
+                    <p className="mb-4">Watch this video for a detailed explanation of the 8085 microprocessor and its programming:</p>
+                    <div className="aspect-w-16 aspect-h-9">
+                      <iframe
+                        src="https://www.youtube.com/embed/Q4SOjf0Cn4w"
+                        title="8085 Microprocessor Tutorial"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                        className="w-full h-64 rounded"
+                      ></iframe>
+                    </div>
+                  </section>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
