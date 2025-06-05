@@ -7,6 +7,24 @@ import Keypad from './components/Keypad';
 import RegisterView from './components/RegisterView';
 import MemoryView from './components/MemoryView';
 import ControlPanel from './components/ControlPanel';
+import instructionSet from './data/instructions.json';
+
+interface Instruction {
+  hex: string;
+  mnemonic: string;
+  description?: string;
+}
+
+interface InstructionGroup {
+  group: string;
+  instructions: Instruction[];
+}
+
+interface InstructionSet {
+  instructions: InstructionGroup[];
+}
+
+const { instructions } = instructionSet as InstructionSet;
 
 const App: React.FC = () => {
   const [cpu] = useState(() => new CPU8085());
@@ -21,6 +39,7 @@ const App: React.FC = () => {
   const [showShortcuts, setShowShortcuts] = useState(false);
   const [showInstructions, setShowInstructions] = useState(false);
   const [activeTab, setActiveTab] = useState('instructions');
+  const [searchTerm, setSearchTerm] = useState('');
 
   const refreshUI = useCallback(() => {
     const newState = cpu.getState();
@@ -217,272 +236,6 @@ const App: React.FC = () => {
     };
   }, [isRunning, handleKeyPress, handleReset, handleExecuteStep]);
 
-  // Complete 8085 Instruction Set
-  const instructionSet = [
-    // Data Transfer Group
-    { hex: '00', mnemonic: 'NOP' },
-    { hex: '01', mnemonic: 'LXI B' },
-    { hex: '02', mnemonic: 'STAX B' },
-    { hex: '03', mnemonic: 'INX B' },
-    { hex: '04', mnemonic: 'INR B' },
-    { hex: '05', mnemonic: 'DCR B' },
-    { hex: '06', mnemonic: 'MVI B' },
-    { hex: '07', mnemonic: 'RLC' },
-    { hex: '08', mnemonic: 'NOP' },
-    { hex: '09', mnemonic: 'DAD B' },
-    { hex: '0A', mnemonic: 'LDAX B' },
-    { hex: '0B', mnemonic: 'DCX B' },
-    { hex: '0C', mnemonic: 'INR C' },
-    { hex: '0D', mnemonic: 'DCR C' },
-    { hex: '0E', mnemonic: 'MVI C' },
-    { hex: '0F', mnemonic: 'RRC' },
-    { hex: '11', mnemonic: 'LXI D' },
-    { hex: '12', mnemonic: 'STAX D' },
-    { hex: '13', mnemonic: 'INX D' },
-    { hex: '14', mnemonic: 'INR D' },
-    { hex: '15', mnemonic: 'DCR D' },
-    { hex: '16', mnemonic: 'MVI D' },
-    { hex: '17', mnemonic: 'RAL' },
-    { hex: '18', mnemonic: 'NOP' },
-    { hex: '19', mnemonic: 'DAD D' },
-    { hex: '1A', mnemonic: 'LDAX D' },
-    { hex: '1B', mnemonic: 'DCX D' },
-    { hex: '1C', mnemonic: 'INR E' },
-    { hex: '1D', mnemonic: 'DCR E' },
-    { hex: '1E', mnemonic: 'MVI E' },
-    { hex: '1F', mnemonic: 'RAR' },
-    { hex: '21', mnemonic: 'LXI H' },
-    { hex: '22', mnemonic: 'SHLD' },
-    { hex: '23', mnemonic: 'INX H' },
-    { hex: '24', mnemonic: 'INR H' },
-    { hex: '25', mnemonic: 'DCR H' },
-    { hex: '26', mnemonic: 'MVI H' },
-    { hex: '27', mnemonic: 'DAA' },
-    { hex: '28', mnemonic: 'NOP' },
-    { hex: '29', mnemonic: 'DAD H' },
-    { hex: '2A', mnemonic: 'LHLD' },
-    { hex: '2B', mnemonic: 'DCX H' },
-    { hex: '2C', mnemonic: 'INR L' },
-    { hex: '2D', mnemonic: 'DCR L' },
-    { hex: '2E', mnemonic: 'MVI L' },
-    { hex: '2F', mnemonic: 'CMA' },
-    { hex: '31', mnemonic: 'LXI SP' },
-    { hex: '32', mnemonic: 'STA' },
-    { hex: '33', mnemonic: 'INX SP' },
-    { hex: '34', mnemonic: 'INR M' },
-    { hex: '35', mnemonic: 'DCR M' },
-    { hex: '36', mnemonic: 'MVI M' },
-    { hex: '37', mnemonic: 'STC' },
-    { hex: '38', mnemonic: 'NOP' },
-    { hex: '39', mnemonic: 'DAD SP' },
-    { hex: '3A', mnemonic: 'LDA' },
-    { hex: '3B', mnemonic: 'DCX SP' },
-    { hex: '3C', mnemonic: 'INR A' },
-    { hex: '3D', mnemonic: 'DCR A' },
-    { hex: '3E', mnemonic: 'MVI A' },
-    { hex: '3F', mnemonic: 'CMC' },
-
-    // Arithmetic Group
-    { hex: '40', mnemonic: 'MOV B,B' },
-    { hex: '41', mnemonic: 'MOV B,C' },
-    { hex: '42', mnemonic: 'MOV B,D' },
-    { hex: '43', mnemonic: 'MOV B,E' },
-    { hex: '44', mnemonic: 'MOV B,H' },
-    { hex: '45', mnemonic: 'MOV B,L' },
-    { hex: '46', mnemonic: 'MOV B,M' },
-    { hex: '47', mnemonic: 'MOV B,A' },
-    { hex: '48', mnemonic: 'MOV C,B' },
-    { hex: '49', mnemonic: 'MOV C,C' },
-    { hex: '4A', mnemonic: 'MOV C,D' },
-    { hex: '4B', mnemonic: 'MOV C,E' },
-    { hex: '4C', mnemonic: 'MOV C,H' },
-    { hex: '4D', mnemonic: 'MOV C,L' },
-    { hex: '4E', mnemonic: 'MOV C,M' },
-    { hex: '4F', mnemonic: 'MOV C,A' },
-    { hex: '50', mnemonic: 'MOV D,B' },
-    { hex: '51', mnemonic: 'MOV D,C' },
-    { hex: '52', mnemonic: 'MOV D,D' },
-    { hex: '53', mnemonic: 'MOV D,E' },
-    { hex: '54', mnemonic: 'MOV D,H' },
-    { hex: '55', mnemonic: 'MOV D,L' },
-    { hex: '56', mnemonic: 'MOV D,M' },
-    { hex: '57', mnemonic: 'MOV D,A' },
-    { hex: '58', mnemonic: 'MOV E,B' },
-    { hex: '59', mnemonic: 'MOV E,C' },
-    { hex: '5A', mnemonic: 'MOV E,D' },
-    { hex: '5B', mnemonic: 'MOV E,E' },
-    { hex: '5C', mnemonic: 'MOV E,H' },
-    { hex: '5D', mnemonic: 'MOV E,L' },
-    { hex: '5E', mnemonic: 'MOV E,M' },
-    { hex: '5F', mnemonic: 'MOV E,A' },
-    { hex: '60', mnemonic: 'MOV H,B' },
-    { hex: '61', mnemonic: 'MOV H,C' },
-    { hex: '62', mnemonic: 'MOV H,D' },
-    { hex: '63', mnemonic: 'MOV H,E' },
-    { hex: '64', mnemonic: 'MOV H,H' },
-    { hex: '65', mnemonic: 'MOV H,L' },
-    { hex: '66', mnemonic: 'MOV H,M' },
-    { hex: '67', mnemonic: 'MOV H,A' },
-    { hex: '68', mnemonic: 'MOV L,B' },
-    { hex: '69', mnemonic: 'MOV L,C' },
-    { hex: '6A', mnemonic: 'MOV L,D' },
-    { hex: '6B', mnemonic: 'MOV L,E' },
-    { hex: '6C', mnemonic: 'MOV L,H' },
-    { hex: '6D', mnemonic: 'MOV L,L' },
-    { hex: '6E', mnemonic: 'MOV L,M' },
-    { hex: '6F', mnemonic: 'MOV L,A' },
-    { hex: '70', mnemonic: 'MOV M,B' },
-    { hex: '71', mnemonic: 'MOV M,C' },
-    { hex: '72', mnemonic: 'MOV M,D' },
-    { hex: '73', mnemonic: 'MOV M,E' },
-    { hex: '74', mnemonic: 'MOV M,H' },
-    { hex: '75', mnemonic: 'MOV M,L' },
-    { hex: '76', mnemonic: 'HLT' },
-    { hex: '77', mnemonic: 'MOV M,A' },
-    { hex: '78', mnemonic: 'MOV A,B' },
-    { hex: '79', mnemonic: 'MOV A,C' },
-    { hex: '7A', mnemonic: 'MOV A,D' },
-    { hex: '7B', mnemonic: 'MOV A,E' },
-    { hex: '7C', mnemonic: 'MOV A,H' },
-    { hex: '7D', mnemonic: 'MOV A,L' },
-    { hex: '7E', mnemonic: 'MOV A,M' },
-    { hex: '7F', mnemonic: 'MOV A,A' },
-
-    // Arithmetic Group (continued)
-    { hex: '80', mnemonic: 'ADD B' },
-    { hex: '81', mnemonic: 'ADD C' },
-    { hex: '82', mnemonic: 'ADD D' },
-    { hex: '83', mnemonic: 'ADD E' },
-    { hex: '84', mnemonic: 'ADD H' },
-    { hex: '85', mnemonic: 'ADD L' },
-    { hex: '86', mnemonic: 'ADD M' },
-    { hex: '87', mnemonic: 'ADD A' },
-    { hex: '88', mnemonic: 'ADC B' },
-    { hex: '89', mnemonic: 'ADC C' },
-    { hex: '8A', mnemonic: 'ADC D' },
-    { hex: '8B', mnemonic: 'ADC E' },
-    { hex: '8C', mnemonic: 'ADC H' },
-    { hex: '8D', mnemonic: 'ADC L' },
-    { hex: '8E', mnemonic: 'ADC M' },
-    { hex: '8F', mnemonic: 'ADC A' },
-    { hex: '90', mnemonic: 'SUB B' },
-    { hex: '91', mnemonic: 'SUB C' },
-    { hex: '92', mnemonic: 'SUB D' },
-    { hex: '93', mnemonic: 'SUB E' },
-    { hex: '94', mnemonic: 'SUB H' },
-    { hex: '95', mnemonic: 'SUB L' },
-    { hex: '96', mnemonic: 'SUB M' },
-    { hex: '97', mnemonic: 'SUB A' },
-    { hex: '98', mnemonic: 'SBB B' },
-    { hex: '99', mnemonic: 'SBB C' },
-    { hex: '9A', mnemonic: 'SBB D' },
-    { hex: '9B', mnemonic: 'SBB E' },
-    { hex: '9C', mnemonic: 'SBB H' },
-    { hex: '9D', mnemonic: 'SBB L' },
-    { hex: '9E', mnemonic: 'SBB M' },
-    { hex: '9F', mnemonic: 'SBB A' },
-
-    // Logical Group
-    { hex: 'A0', mnemonic: 'ANA B' },
-    { hex: 'A1', mnemonic: 'ANA C' },
-    { hex: 'A2', mnemonic: 'ANA D' },
-    { hex: 'A3', mnemonic: 'ANA E' },
-    { hex: 'A4', mnemonic: 'ANA H' },
-    { hex: 'A5', mnemonic: 'ANA L' },
-    { hex: 'A6', mnemonic: 'ANA M' },
-    { hex: 'A7', mnemonic: 'ANA A' },
-    { hex: 'A8', mnemonic: 'XRA B' },
-    { hex: 'A9', mnemonic: 'XRA C' },
-    { hex: 'AA', mnemonic: 'XRA D' },
-    { hex: 'AB', mnemonic: 'XRA E' },
-    { hex: 'AC', mnemonic: 'XRA H' },
-    { hex: 'AD', mnemonic: 'XRA L' },
-    { hex: 'AE', mnemonic: 'XRA M' },
-    { hex: 'AF', mnemonic: 'XRA A' },
-    { hex: 'B0', mnemonic: 'ORA B' },
-    { hex: 'B1', mnemonic: 'ORA C' },
-    { hex: 'B2', mnemonic: 'ORA D' },
-    { hex: 'B3', mnemonic: 'ORA E' },
-    { hex: 'B4', mnemonic: 'ORA H' },
-    { hex: 'B5', mnemonic: 'ORA L' },
-    { hex: 'B6', mnemonic: 'ORA M' },
-    { hex: 'B7', mnemonic: 'ORA A' },
-    { hex: 'B8', mnemonic: 'CMP B' },
-    { hex: 'B9', mnemonic: 'CMP C' },
-    { hex: 'BA', mnemonic: 'CMP D' },
-    { hex: 'BB', mnemonic: 'CMP E' },
-    { hex: 'BC', mnemonic: 'CMP H' },
-    { hex: 'BD', mnemonic: 'CMP L' },
-    { hex: 'BE', mnemonic: 'CMP M' },
-    { hex: 'BF', mnemonic: 'CMP A' },
-
-    // Branch Group
-    { hex: 'C0', mnemonic: 'RNZ' },
-    { hex: 'C1', mnemonic: 'POP B' },
-    { hex: 'C2', mnemonic: 'JNZ' },
-    { hex: 'C3', mnemonic: 'JMP' },
-    { hex: 'C4', mnemonic: 'CNZ' },
-    { hex: 'C5', mnemonic: 'PUSH B' },
-    { hex: 'C6', mnemonic: 'ADI' },
-    { hex: 'C7', mnemonic: 'RST 0' },
-    { hex: 'C8', mnemonic: 'RZ' },
-    { hex: 'C9', mnemonic: 'RET' },
-    { hex: 'CA', mnemonic: 'JZ' },
-    { hex: 'CB', mnemonic: 'NOP' },
-    { hex: 'CC', mnemonic: 'CZ' },
-    { hex: 'CD', mnemonic: 'CALL' },
-    { hex: 'CE', mnemonic: 'ACI' },
-    { hex: 'CF', mnemonic: 'RST 1' },
-    { hex: 'D0', mnemonic: 'RNC' },
-    { hex: 'D1', mnemonic: 'POP D' },
-    { hex: 'D2', mnemonic: 'JNC' },
-    { hex: 'D3', mnemonic: 'OUT' },
-    { hex: 'D4', mnemonic: 'CNC' },
-    { hex: 'D5', mnemonic: 'PUSH D' },
-    { hex: 'D6', mnemonic: 'SUI' },
-    { hex: 'D7', mnemonic: 'RST 2' },
-    { hex: 'D8', mnemonic: 'RC' },
-    { hex: 'D9', mnemonic: 'NOP' },
-    { hex: 'DA', mnemonic: 'JC' },
-    { hex: 'DB', mnemonic: 'IN' },
-    { hex: 'DC', mnemonic: 'CC' },
-    { hex: 'DD', mnemonic: 'NOP' },
-    { hex: 'DE', mnemonic: 'SBI' },
-    { hex: 'DF', mnemonic: 'RST 3' },
-    { hex: 'E0', mnemonic: 'RPO' },
-    { hex: 'E1', mnemonic: 'POP H' },
-    { hex: 'E2', mnemonic: 'JPO' },
-    { hex: 'E3', mnemonic: 'XTHL' },
-    { hex: 'E4', mnemonic: 'CPO' },
-    { hex: 'E5', mnemonic: 'PUSH H' },
-    { hex: 'E6', mnemonic: 'ANI' },
-    { hex: 'E7', mnemonic: 'RST 4' },
-    { hex: 'E8', mnemonic: 'RPE' },
-    { hex: 'E9', mnemonic: 'PCHL' },
-    { hex: 'EA', mnemonic: 'JPE' },
-    { hex: 'EB', mnemonic: 'XCHG' },
-    { hex: 'EC', mnemonic: 'CPE' },
-    { hex: 'ED', mnemonic: 'NOP' },
-    { hex: 'EE', mnemonic: 'XRI' },
-    { hex: 'EF', mnemonic: 'RST 5' },
-    { hex: 'F0', mnemonic: 'RP' },
-    { hex: 'F1', mnemonic: 'POP PSW' },
-    { hex: 'F2', mnemonic: 'JP' },
-    { hex: 'F3', mnemonic: 'DI' },
-    { hex: 'F4', mnemonic: 'CP' },
-    { hex: 'F5', mnemonic: 'PUSH PSW' },
-    { hex: 'F6', mnemonic: 'ORI' },
-    { hex: 'F7', mnemonic: 'RST 6' },
-    { hex: 'F8', mnemonic: 'RM' },
-    { hex: 'F9', mnemonic: 'SPHL' },
-    { hex: 'FA', mnemonic: 'JM' },
-    { hex: 'FB', mnemonic: 'EI' },
-    { hex: 'FC', mnemonic: 'CM' },
-    { hex: 'FD', mnemonic: 'NOP' },
-    { hex: 'FE', mnemonic: 'CPI' },
-    { hex: 'FF', mnemonic: 'RST 7' }
-  ];
-
   return (
     <div className="min-h-screen bg-[#2D2D2D] text-gray-100 p-4 flex flex-col items-center font-sans">
       <header className="mb-6 text-center relative w-full max-w-4xl flex justify-center items-center">
@@ -625,44 +378,65 @@ const App: React.FC = () => {
 
             {/* Instruction Set Tab */}
             {activeTab === 'instructions' && (
-              <>
-                <h2 className="text-2xl font-bold mb-6 text-orange-400 text-center">8085 Instruction Set</h2>
-                <div className="max-h-[60vh] overflow-y-auto pr-2">
-                  <table className="w-full text-sm table-fixed">
-                    <thead className="sticky top-0 bg-gray-800">
-                      <tr className="border-b border-gray-600">
-                        <th className="p-2 text-left text-gray-300 font-semibold w-1/4">Hex</th>
-                        <th className="p-2 text-left text-gray-300 font-semibold w-1/4">Mnemonic</th>
-                        <th className="p-2 text-left text-gray-300 font-semibold w-1/4">Hex</th>
-                        <th className="p-2 text-left text-gray-300 font-semibold w-1/4">Mnemonic</th>
+              <div className="space-y-8 max-h-[60vh] overflow-y-auto pr-2 relative">
+                <div className="sticky top-0 bg-gray-800 pb-4 z-10">
+                  <input
+                    type="text"
+                    placeholder="Search by hex, mnemonic, or description..."
+                    value={searchTerm}
+                    onChange={e => setSearchTerm(e.target.value)}
+                    className="w-full p-2 rounded bg-gray-700 text-gray-100 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-400"
+                  />
+                </div>
+                {searchTerm.trim() ? (
+                  <table className="w-full text-sm table-fixed border border-gray-600 bg-gray-900 rounded">
+                    <thead className="bg-gray-800">
+                      <tr>
+                        <th className="p-2 text-left text-gray-300 font-semibold w-1/6 border-b border-gray-700">Hex</th>
+                        <th className="p-2 text-left text-gray-300 font-semibold w-1/6 border-b border-gray-700">Mnemonic</th>
+                        <th className="p-2 text-left text-gray-300 font-semibold w-2/3 border-b border-gray-700">Description</th>
                       </tr>
                     </thead>
-                    <tbody className="font-digital">
-                      {instructionSet.reduce((rows, key, index) => (index % 2 === 0 ? rows.push([key]) : rows[rows.length-1].push(key)) && rows, [] as Array<Array<{hex: string, mnemonic: string}>>)
-                        .reduce((acc, pair, index) => {
-                          if (index % 2 === 0) {
-                            acc.push([pair[0], pair[1]]);
-                          } else {
-                            acc[acc.length - 1].push(pair[0], pair[1]);
-                          }
-                          return acc;
-                        }, [] as Array<Array<{hex: string, mnemonic: string} | undefined>>)
-                        .map((rowItems, rowIndex) => (
-                        <tr key={rowIndex} className="border-b border-gray-700 hover:bg-gray-700">
-                          <td className="p-2 text-green-400">{rowItems[0]?.hex}</td>
-                          <td className="p-2 text-sky-300">{rowItems[0]?.mnemonic}</td>
-                          <td className="p-2 text-green-400">{rowItems[1]?.hex}</td>
-                          <td className="p-2 text-sky-300">{rowItems[1]?.mnemonic}</td>
-                          <td className="p-2 text-green-400">{rowItems[2]?.hex}</td>
-                          <td className="p-2 text-sky-300">{rowItems[2]?.mnemonic}</td>
-                          <td className="p-2 text-green-400">{rowItems[3]?.hex}</td>
-                          <td className="p-2 text-sky-300">{rowItems[3]?.mnemonic}</td>
+                    <tbody>
+                      {instructions.flatMap(group => group.instructions).filter(instr =>
+                        instr.hex.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                        instr.mnemonic.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                        (instr.description && instr.description.toLowerCase().includes(searchTerm.toLowerCase()))
+                      ).map((instruction, idx) => (
+                        <tr key={idx} className="border-b border-gray-800 hover:bg-gray-700">
+                          <td className="p-2 text-green-400 font-mono">{instruction.hex}</td>
+                          <td className="p-2 text-sky-300">{instruction.mnemonic}</td>
+                          <td className="p-2 text-gray-200">{instruction.description || ''}</td>
                         </tr>
                       ))}
                     </tbody>
                   </table>
-                </div>
-              </>
+                ) : (
+                  instructions.map((group: InstructionGroup, index: number) => (
+                    <div key={index} className="space-y-2">
+                      <h3 className="text-lg font-semibold text-blue-600 mb-2">{group.group}</h3>
+                      <table className="w-full text-sm table-fixed border border-gray-600 bg-gray-900 rounded">
+                        <thead className="bg-gray-800">
+                          <tr>
+                            <th className="p-2 text-left text-gray-300 font-semibold w-1/6 border-b border-gray-700">Hex</th>
+                            <th className="p-2 text-left text-gray-300 font-semibold w-1/6 border-b border-gray-700">Mnemonic</th>
+                            <th className="p-2 text-left text-gray-300 font-semibold w-2/3 border-b border-gray-700">Description</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {group.instructions.map((instruction: Instruction, idx: number) => (
+                            <tr key={idx} className="border-b border-gray-800 hover:bg-gray-700">
+                              <td className="p-2 text-green-400 font-mono">{instruction.hex}</td>
+                              <td className="p-2 text-sky-300">{instruction.mnemonic}</td>
+                              <td className="p-2 text-gray-200">{instruction.description || ''}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  ))
+                )}
+              </div>
             )}
 
             {/* Getting Started Tab */}
