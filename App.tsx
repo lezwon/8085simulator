@@ -238,26 +238,24 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-[#2D2D2D] text-gray-100 p-4 flex flex-col items-center font-sans">
-      <header className="mb-6 text-center relative w-full max-w-4xl flex justify-center items-center">
-        <div className="absolute left-0 top-1/2 -translate-y-1/2">
+      <header className="mb-6 w-full max-w-4xl flex flex-col sm:flex-row items-center sm:justify-between gap-4 px-2">
+        <h1 className="text-3xl sm:text-4xl font-bold text-orange-400 font-['Orbitron',sans-serif] text-center flex-1">8085 Microprocessor Simulator</h1>
+        <div className="flex flex-row gap-2 w-full sm:w-auto justify-center sm:justify-end">
           <button
             onClick={() => setShowShortcuts(true)}
-            className="bg-gray-700 hover:bg-gray-600 text-orange-400 px-3 py-1 rounded-lg shadow-md transition-colors duration-200 flex items-center gap-2"
+            className="hidden sm:flex bg-gray-700 hover:bg-gray-600 text-orange-400 px-3 py-2 rounded-lg shadow-md transition-colors duration-200 items-center gap-2 text-base sm:text-sm w-full sm:w-auto"
             title="Keyboard Shortcuts"
           >
-            <span className="text-sm">⌨️</span>
-            <span className="text-sm hidden sm:inline">Shortcuts</span>
+            <span className="text-lg sm:text-sm">⌨️</span>
+            <span>Shortcuts</span>
           </button>
-        </div>
-        <h1 className="text-4xl font-bold text-orange-400 font-['Orbitron',sans-serif] mx-auto">8085 Microprocessor Simulator</h1>
-        <div className="absolute right-0 top-1/2 -translate-y-1/2">
           <button
             onClick={() => setShowInstructions(true)}
-            className="bg-gray-700 hover:bg-gray-600 text-orange-400 px-3 py-1 rounded-lg shadow-md transition-colors duration-200 flex items-center gap-2"
+            className="bg-gray-700 hover:bg-gray-600 text-orange-400 px-3 py-2 rounded-lg shadow-md transition-colors duration-200 flex flex-row items-center justify-center gap-2 text-base sm:text-sm w-full sm:w-auto"
             title="8085 Instruction Set"
           >
-            <span className="text-sm">📖</span>
-            <span className="text-sm hidden sm:inline">Instructions</span>
+            <span className="text-lg sm:text-sm">📖</span>
+            <span>Instructions</span>
           </button>
         </div>
       </header>
@@ -302,16 +300,17 @@ const App: React.FC = () => {
 
       {/* Keyboard Shortcuts Modal */}
       {showShortcuts && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-gray-800 p-6 rounded-lg shadow-xl max-w-md w-full mx-4 relative">
+        <div className="hidden sm:flex fixed inset-0 bg-black bg-opacity-70 items-center justify-center z-50 p-0 sm:p-4">
+          <div className="bg-gray-800 w-full h-full sm:max-w-md sm:h-auto p-6 rounded-none sm:rounded-lg shadow-xl relative overflow-y-auto flex flex-col">
             <button
               onClick={() => setShowShortcuts(false)}
-              className="absolute top-4 right-4 text-gray-400 hover:text-white"
+              className="absolute top-4 right-4 text-gray-400 hover:text-white text-3xl sm:text-xl"
+              aria-label="Close Shortcuts"
             >
               ✕
             </button>
             <h2 className="text-xl font-bold mb-4 text-orange-400">Keyboard Shortcuts</h2>
-            <div className="space-y-3 text-sm">
+            <div className="space-y-3 text-base sm:text-sm">
               <div className="flex justify-between items-center">
                 <span className="text-gray-300">Hex Values:</span>
                 <span className="font-digital bg-gray-700 px-2 py-1 rounded">0-9, A-F</span>
@@ -351,17 +350,16 @@ const App: React.FC = () => {
 
       {/* Instruction Set Modal */}
       {showInstructions && (
-        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
-          <div className="bg-gray-800 p-6 rounded-lg shadow-xl max-w-4xl w-full relative font-sans">
+        <div className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50 p-0 sm:p-4">
+          <div className="bg-gray-800 w-full h-full sm:w-auto sm:h-auto sm:max-w-4xl sm:max-h-[90vh] p-4 sm:p-6 rounded-none sm:rounded-lg shadow-xl relative font-sans flex flex-col overflow-y-auto">
             <button
               onClick={() => setShowInstructions(false)}
-              className="absolute top-4 right-4 text-gray-400 hover:text-white text-2xl"
+              className="absolute top-4 right-4 text-gray-400 hover:text-white text-3xl sm:text-2xl"
+              aria-label="Close Instructions"
             >
               ✕
             </button>
-            
-            {/* Tabs */}
-            <div className="flex space-x-4 mb-6 border-b border-gray-700">
+            <div className="flex space-x-4 mb-4 border-b border-gray-700">
               <button
                 onClick={() => setActiveTab('instructions')}
                 className={`pb-2 px-4 ${activeTab === 'instructions' ? 'text-orange-400 border-b-2 border-orange-400' : 'text-gray-400'}`}
@@ -375,10 +373,9 @@ const App: React.FC = () => {
                 Getting Started
               </button>
             </div>
-
             {/* Instruction Set Tab */}
             {activeTab === 'instructions' && (
-              <div className="space-y-8 max-h-[60vh] overflow-y-auto pr-2 relative">
+              <div className="space-y-8 flex-1 overflow-y-auto">
                 <div className="sticky top-0 bg-gray-800 pb-4 z-10">
                   <input
                     type="text"
@@ -389,7 +386,7 @@ const App: React.FC = () => {
                   />
                 </div>
                 {searchTerm.trim() ? (
-                  <table className="w-full text-sm table-fixed border border-gray-600 bg-gray-900 rounded">
+                  <table className="w-full text-base sm:text-sm table-fixed border border-gray-600 bg-gray-900 rounded">
                     <thead className="bg-gray-800">
                       <tr>
                         <th className="p-2 text-left text-gray-300 font-semibold w-1/6 border-b border-gray-700">Hex</th>
@@ -415,7 +412,7 @@ const App: React.FC = () => {
                   instructions.map((group: InstructionGroup, index: number) => (
                     <div key={index} className="space-y-2">
                       <h3 className="text-lg font-semibold text-blue-600 mb-2">{group.group}</h3>
-                      <table className="w-full text-sm table-fixed border border-gray-600 bg-gray-900 rounded">
+                      <table className="w-full text-base sm:text-sm table-fixed border border-gray-600 bg-gray-900 rounded">
                         <thead className="bg-gray-800">
                           <tr>
                             <th className="p-2 text-left text-gray-300 font-semibold w-1/6 border-b border-gray-700">Hex</th>
@@ -438,12 +435,10 @@ const App: React.FC = () => {
                 )}
               </div>
             )}
-
             {/* Getting Started Tab */}
             {activeTab === 'guide' && (
-              <div className="max-h-[70vh] overflow-y-auto pr-2">
+              <div className="flex-1 overflow-y-auto">
                 <h2 className="text-2xl font-bold mb-6 text-orange-400 text-center">Getting Started Guide</h2>
-                
                 <div className="space-y-6 text-gray-300">
                   <section>
                     <h3 className="text-xl font-semibold text-orange-400 mb-2">Understanding the Interface</h3>
@@ -456,7 +451,6 @@ const App: React.FC = () => {
                       <li><span className="text-orange-400">Memory View:</span> Displays the contents of memory locations</li>
                     </ul>
                   </section>
-
                   <section>
                     <h3 className="text-xl font-semibold text-orange-400 mb-2">Basic Operations</h3>
                     <ul className="list-disc pl-6 space-y-2">
@@ -467,7 +461,6 @@ const App: React.FC = () => {
                       <li><span className="text-orange-400">Reset (R):</span> Reset the processor state</li>
                     </ul>
                   </section>
-
                   <section>
                     <h3 className="text-xl font-semibold text-orange-400 mb-2">Sample Program: Adding Two Numbers</h3>
                     <p className="mb-2">Let's write a simple program to add two numbers (25H + 35H):</p>
@@ -488,7 +481,6 @@ const App: React.FC = () => {
                       <li>Continue with remaining instructions...</li>
                     </ol>
                   </section>
-
                   <section>
                     <h3 className="text-xl font-semibold text-orange-400 mb-2">Video Tutorial</h3>
                     <p className="mb-4">Watch this video for a detailed explanation of the 8085 microprocessor and its programming:</p>
