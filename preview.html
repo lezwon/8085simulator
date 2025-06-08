@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>8085 Preview</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            width: 800px;
+            height: 800px;
+            background: #2D2D2D;
+            font-family: 'Orbitron', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+        .container {
+            text-align: center;
+            padding: 2rem;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, #2D2D2D 0%, #1A1A1A 100%);
+        }
+        .logo {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+        @keyframes glow {
+            from {
+                text-shadow: 0 0 10px #FF4500, 0 0 20px #FF4500;
+            }
+            to {
+                text-shadow: 0 0 20px #FF4500, 0 0 30px #FF4500;
+            }
+        }
+        h1 {
+            font-size: 2.5rem;
+            color: #FF4500;
+            margin-bottom: 0.5rem;
+            text-shadow: 0 0 10px rgba(255, 69, 0, 0.5);
+        }
+        .subtitle {
+            font-size: 1.2rem;
+            color: #E0E0E0;
+            margin-bottom: 2rem;
+            max-width: 600px;
+        }
+        .features {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin-top: 1rem;
+            max-width: 600px;
+        }
+        .feature {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 1rem;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 69, 0, 0.3);
+            transition: all 0.3s ease;
+        }
+        .feature:hover {
+            background: rgba(255, 69, 0, 0.1);
+            transform: translateY(-2px);
+        }
+        .feature h3 {
+            color: #FF4500;
+            margin-bottom: 0.5rem;
+            font-size: 1rem;
+        }
+        .feature p {
+            color: #E0E0E0;
+            font-size: 0.8rem;
+            margin: 0;
+        }
+        .hex-grid {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(rgba(255, 69, 0, 0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 69, 0, 0.1) 1px, transparent 1px);
+            background-size: 20px 20px;
+            pointer-events: none;
+            opacity: 0.5;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="hex-grid"></div>
+        <div class="logo">🖥️</div>
+        <h1>8085 Simulator</h1>
+        <div class="subtitle">Interactive Assembly Programming Environment</div>
+        <div class="features">
+            <div class="feature">
+                <h3>Real-time Simulation</h3>
+                <p>Execute 8085 assembly with accurate timing</p>
+            </div>
+            <div class="feature">
+                <h3>Visual Interface</h3>
+                <p>Monitor registers and memory in real-time</p>
+            </div>
+            <div class="feature">
+                <h3>Step Debug</h3>
+                <p>Learn with detailed execution control</p>
+            </div>
+            <div class="feature">
+                <h3>Modern UI</h3>
+                <p>Clean interface with vintage aesthetics</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html> 
